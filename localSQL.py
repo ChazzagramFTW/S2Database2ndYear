@@ -99,7 +99,7 @@ def main():
 
     cur.execute(""" CREATE TABLE IF NOT EXISTS results (
                                 system varchar(25) NOT NULL,
-                                party_id varchar(25) NOT NULL,
+                                party varchar(25) NOT NULL,
                                 seats int NOT NULL,
                                 seats_percent float NOT NULL,
                                 pop_votes_percent float NOT NULL,
@@ -114,8 +114,12 @@ def main():
         # For each party, the code grabs the total amount of votes they received as a party.
         cur.execute("SELECT SUM(votes) FROM candidates WHERE party_id = " + str(x))
         party_votes = cur.fetchone()
+        
+        cur.execute("SELECT name FROM parties WHERE id = " + str(x))
+        party_name = cur.fetchone()
+
         # This result is then divided into a percentage of popular votes and placed into the results table.
-        cur.execute("INSERT INTO results VALUES ('PR', '" + str(x) + "', 0, 0.0, " + str((party_votes[0]/votes[0])*100) + ", 0.0)")
+        cur.execute("INSERT INTO results VALUES ('First Past The Post', ?, 0, 0.0, " + str(round((party_votes[0]/votes[0])*100, 2)) + ", 0.0)", (party_name))
 
     cur.execute("SELECT id FROM constituencies")
 
@@ -134,35 +138,193 @@ def main():
         constituencyWinner = cur.fetchone()
 
         # Grabs the constituency ID from the parties table.
-        cur.execute("SELECT * FROM parties WHERE id = " + constituencyWinner[0]) # constituencyWinner[0]
-        print("Winning Party ID: " + constituencyWinner[0])
+        cur.execute("SELECT name FROM parties WHERE id = " + constituencyWinner[0]) # constituencyWinner[0]
         winnerName = cur.fetchone()
 
         # Retreives how many seats the party currently has.
-        cur.execute("SELECT seats FROM results WHERE party_id = " + winnerName[0])
+        cur.execute("SELECT seats FROM results WHERE party = '" + winnerName[0] + "'")
         seatsandvotes = cur.fetchone()
 
         # And then increments the seats by one, and updating the results table.
         # The code also calculates the percentage of seats using the max amount of seats available.
-        cur.execute("UPDATE results SET seats = " + str((seatsandvotes[0])+1) + ", seats_percent = " + str(((seatsandvotes[0]+1)/650)*100) + " WHERE party_id = " + winnerName[0])
+        cur.execute("UPDATE results SET seats = " + str((seatsandvotes[0])+1) + ", seats_percent = " + str(round(((seatsandvotes[0]+1)/650)*100, 2)) + " WHERE party = '" + winnerName[0] + "'")
 
     # Fetches each party, its seats percent, and its vote percent.
-    cur.execute("SELECT party_id, seats_percent, pop_votes_percent FROM results")
+    cur.execute("SELECT party, seats_percent, pop_votes_percent FROM results")
     results_percents = cur.fetchall()
 
     # Loops through each party in the results table.
     for row in results_percents:
         # And calculates the difference between the percentages, updating the tables 'difference' column.
-        cur.execute("UPDATE results SET difference = " + str(row[2]-row[1]) + " WHERE party_id = " + str(row[0]))
+        cur.execute("UPDATE results SET difference = ? WHERE party = ?", (str(round(row[2]-row[1], 2)), row[0]))
+
+
+
+
+
+    # PR Pure
+
+    # Loops through all 71 parties.
+    for x in range(1,72):
+        # For each party, the code grabs the total amount of votes they received as a party.
+        cur.execute("SELECT SUM(votes) FROM candidates WHERE party_id = " + str(x))
+        party_votes = cur.fetchone()
+        
+        cur.execute("SELECT name FROM parties WHERE id = " + str(x))
+        party_name = cur.fetchone()
+
+        # This result is then divided into a percentage of popular votes and placed into the results table.
+        cur.execute("INSERT INTO results VALUES ('Proportional Representation without modification', ?, ?, ?, ?, 0.0)", (str(party_name[0]), str(round((party_votes[0]/votes[0])*650)), str(round((party_votes[0]/votes[0])*100, 2)), str(round((party_votes[0]/votes[0])*100, 2))))
+    
+
+
+
+    # PR 5%
+    threshold_votes = 0
+    # Loops through all 71 parties.
+    for x in range(1,72):
+        # For each party, the code grabs the total amount of votes they received as a party.
+        cur.execute("SELECT SUM(votes) FROM candidates WHERE party_id = " + str(x))
+        party_votes = cur.fetchone()
+    
+        if(party_votes[0] >= (votes[0]*0.05)):
+            threshold_votes = threshold_votes + party_votes[0]
+
+
+    for x in range(1,72):
+            # For each party, the code grabs the total amount of votes they received as a party.
+            cur.execute("SELECT SUM(votes) FROM candidates WHERE party_id = " + str(x))
+            party_votes = cur.fetchone()
+            
+            cur.execute("SELECT name FROM parties WHERE id = " + str(x))
+            party_name = cur.fetchone()
+
+            if(party_votes[0] >= (votes[0]*0.05)):
+                # This result is then divided into a percentage of popular votes and placed into the results table.
+                cur.execute("INSERT INTO results VALUES ('Proportional Representation (5%)', ?, ?, ?, ?, ?)", (str(party_name[0]), str(round((party_votes[0]/threshold_votes)*650)), str(round((party_votes[0]/threshold_votes)*100, 2)), str(round((party_votes[0]/votes[0])*100, 2)), round(((party_votes[0]/votes[0])*100)-((party_votes[0]/threshold_votes)*100), 2)))
+
+            else:
+                cur.execute("INSERT INTO results VALUES ('Proportional Representation (5%)', ?, 0, 0, ?, ?)", (str(party_name[0]), str(round((party_votes[0]/votes[0])*100, 2)),str(round(0-(party_votes[0]/votes[0])*100, 2))))
+
+
+
+
+
+
+    # PR (by County)
+
+     # Loops through all 71 parties.
+    for x in range(1,72):
+        party_vote_percent = 0
+        party_vote_count = 0
+        for y in range(1,56):
+            # For each party, the code grabs the total amount of votes they received as a party.
+            cur.execute("SELECT SUM(votes) FROM candidates WHERE county_id = " + str(y) + " AND party_id = " + str(x))
+            party_votes = cur.fetchone()
+
+            if party_votes[0] == None:
+                if y == 55:
+                    # This result is then divided into a percentage of popular votes and placed into the results table.
+                    cur.execute("INSERT INTO results VALUES ('Proportional Representation (by County)', ?, ?, ?, ?, 0.0)", (str(party_name[0]), str(round(650*(party_vote_percent/100))), str(round((party_vote_count/votes[0])*100, 2)), str(round(party_vote_percent, 2))))
+                continue
+            
+            else:
+                cur.execute("SELECT SUM(votes) FROM candidates WHERE county_id = " + str(y))
+                county_votes = cur.fetchone()
+                
+                cur.execute("SELECT name FROM parties WHERE id = " + str(x))
+                party_name = cur.fetchone()
+
+                party_vote_count = party_vote_count + party_votes[0]
+
+                party_vote_percent = party_vote_percent + (((party_votes[0]/county_votes[0])*100)/55)
+
+                if(y == 55):
+                    # This result is then divided into a percentage of popular votes and placed into the results table.
+                    cur.execute("INSERT INTO results VALUES ('Proportional Representation (by County)', ?, ?, ?, ?, 0.0)", (str(party_name[0]), str(round(650*(party_vote_percent/100))), str(round((party_votes[0]/votes[0])*100, 2)), str(round(party_vote_percent, 2))))
+
+
+
+
+
+    # PR (by Region)
+
+     # Loops through all 71 parties.
+    for x in range(1,72):
+        party_vote_percent = 0
+        party_vote_count = 0
+        for y in range(1,13):
+            # For each party, the code grabs the total amount of votes they received as a party.
+            cur.execute("SELECT SUM(votes) FROM candidates WHERE region_id = " + str(y) + " AND party_id = " + str(x))
+            party_votes = cur.fetchone()
+
+            if party_votes[0] == None:
+                if y == 12:
+                    # This result is then divided into a percentage of popular votes and placed into the results table.
+                    cur.execute("INSERT INTO results VALUES ('Proportional Representation (by Region)', ?, ?, ?, ?, 0.0)", (str(party_name[0]), str(round(650*(party_vote_percent/100))), str(round((party_vote_count/votes[0])*100, 2)), str(round(party_vote_percent, 2))))
+                continue
+            
+            else:
+                cur.execute("SELECT SUM(votes) FROM candidates WHERE region_id = " + str(y))
+                region_votes = cur.fetchone()
+                
+                cur.execute("SELECT name FROM parties WHERE id = " + str(x))
+                party_name = cur.fetchone()
+
+                party_vote_count = party_vote_count + party_votes[0]
+
+                party_vote_percent = party_vote_percent + (((party_votes[0]/region_votes[0])*100)/12)
+
+                if(y == 12):
+                    # This result is then divided into a percentage of popular votes and placed into the results table.
+                    cur.execute("INSERT INTO results VALUES ('Proportional Representation (by Region)', ?, ?, ?, ?, 0.0)", (str(party_name[0]), str(round(650*(party_vote_percent/100))), str(round((party_votes[0]/votes[0])*100, 2)), str(round(party_vote_percent, 2))))
+
+
+
+
+
+
+    # PR (by Country)
+
+     # Loops through all 71 parties.
+    for x in range(1,72):
+        party_vote_percent = 0
+        party_vote_count = 0
+        for y in range(1,5):
+            # For each party, the code grabs the total amount of votes they received as a party.
+            cur.execute("SELECT SUM(votes) FROM candidates WHERE country_id = " + str(y) + " AND party_id = " + str(x))
+            party_votes = cur.fetchone()
+
+            if party_votes[0] == None:
+                if y == 4:
+                    # This result is then divided into a percentage of popular votes and placed into the results table.
+                    cur.execute("INSERT INTO results VALUES ('Proportional Representation (by Country)', ?, ?, ?, ?, 0.0)", (str(party_name[0]), str(round(650*(party_vote_percent/100))), str(round((party_vote_count/votes[0])*100, 2)), str(round(party_vote_percent, 2))))
+                continue
+            
+            else:
+                cur.execute("SELECT SUM(votes) FROM candidates WHERE country_id = " + str(y))
+                country_votes = cur.fetchone()
+                
+                cur.execute("SELECT name FROM parties WHERE id = " + str(x))
+                party_name = cur.fetchone()
+
+                party_vote_count = party_vote_count + party_votes[0]
+
+                party_vote_percent = party_vote_percent + (((party_votes[0]/country_votes[0])*100)/4)
+
+                if(y == 4):
+                    # This result is then divided into a percentage of popular votes and placed into the results table.
+                    cur.execute("INSERT INTO results VALUES ('Proportional Representation (by Country)', ?, ?, ?, ?, 0.0)", (str(party_name[0]), str(round(650*(party_vote_percent/100))), str(round((party_votes[0]/votes[0])*100, 2)), str(round(party_vote_percent, 2))))
+
 
     # Orders the results by most votes!
-    cur.execute("SELECT * FROM results ORDER BY seats DESC")
+    cur.execute("SELECT * FROM results")
     rows = cur.fetchall()
 
     # Debugging Print
     for row in rows:
         print(row)
-    
+
     #closes connection
     conn.close()
 
