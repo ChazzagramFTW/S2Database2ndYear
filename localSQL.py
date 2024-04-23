@@ -384,7 +384,7 @@ def main():
             remainders[party_id_str] = party_seats_remainder
 
         # Sorts the remainders in order highest to lowest, converting the dictionary to a list of tuples.
-        remainders = sorted(remainders.items(), key=lambda x: x[0])
+        remainders = sorted(remainders.items(), key=lambda x: x[1], reverse=True)
 
         # Loops through all party's remainders.
         for party_id, party_seats_remainder in remainders:
@@ -477,7 +477,7 @@ def main():
             remainders[party_id_str] = party_seats_remainder
 
         # Sorts the remainders in order highest to lowest, converting the dictionary to a list of tuples.
-        remainders = sorted(remainders.items(), key=lambda x: x[0])
+        remainders = sorted(remainders.items(), key=lambda x: x[1], reverse=True)
 
         # Loops through all party's remainders.
         for party_id, party_seats_remainder in remainders:
@@ -571,7 +571,7 @@ def main():
             remainders[party_id_str] = party_seats_remainder
 
         # Sorts the remainders in order highest to lowest, converting the dictionary to a list of tuples.
-        remainders = sorted(remainders.items(), key=lambda x: x[0])
+        remainders = sorted(remainders.items(), key=lambda x: x[1], reverse=True)
 
         # Loops through all party's remainders.
         for party_id, party_seats_remainder in remainders:
