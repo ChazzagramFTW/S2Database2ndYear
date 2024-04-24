@@ -683,6 +683,176 @@ def main():
 
 
 
+
+
+
+
+
+    # DHont (by Region)
+
+    # Overall seats as a dictionary, to hold the parties and their overall seat count for later insertation.
+    overall_seats = {}
+    # Current seats dictionary to hold each parties current seats.
+    current_seats = {}
+    # Vote quotients dictionary to hold each parties vote quotient.
+    vote_quotients = {}
+
+    # Gets all parties id's from parties table.
+    cur.execute("SELECT id FROM parties")
+    parties = cur.fetchall()
+
+    # Adding each party to the dictionary.
+    for row in parties:
+        overall_seats[str(row[0])] = 0
+
+    # Loop through each region.
+    for x in range(1, 13):
+
+        # Adding each party to the current votes dictionary.
+        for row in parties:
+            current_seats[str(row[0])] = 0
+
+        region_seats = 0
+        # Loop through each constituency.
+        for y in range(1, 651):
+            # Grabs the constituency and region to check if the constituency comes up in that region.
+            cur.execute("SELECT * FROM candidates WHERE region_id = " + str(x) + " AND constituency_id = " + str(y))
+            constituency_in_region = cur.fetchall()
+
+            # Adds to total "seats" in region if the constituency is in the region.
+            if constituency_in_region:
+                region_seats = region_seats + 1
+
+        # Loops through all seats.
+        for y in range(1,(region_seats+1)):
+            sorted_vote_quotients = {}
+        # Loop through each party.
+            for z in range(1, 72):
+                # Fetches the total votes the current party received in this region.
+                cur.execute("SELECT SUM(votes) FROM candidates WHERE region_id = " + str(x) + " AND party_id = " + str(z))
+                party_votes = cur.fetchone()
+
+                # If no votes, skip iteration.
+                if party_votes[0] is None:
+                    # add party to vote quotients.
+                    continue
+                
+                # Calculates the parties seats for the current region.
+                vote_quotients[str(z)] = party_votes[0] / (current_seats[str(z)] + 1)
+
+            # Sorts the vote quotients in order highest to lowest, converting the dictionary to a list of tuples.
+            sorted_vote_quotients = sorted(vote_quotients.items(), key=lambda x: x[1], reverse=True)
+
+            # Adds to parties current seats.
+            current_seats[str(sorted_vote_quotients[0][0])] = current_seats[str(sorted_vote_quotients[0][0])] + 1
+
+            # Adds to parties overall seats.
+            overall_seats[str(sorted_vote_quotients[0][0])] = overall_seats[str(sorted_vote_quotients[0][0])] + 1
+
+
+            vote_quotients[str(sorted_vote_quotients[0][0])] = vote_quotients[str(sorted_vote_quotients[0][0])] / (current_seats[str(sorted_vote_quotients[0][0])] + 1)
+ 
+    
+    # Loops through all parties in the overall seats dictionary, to grab the parties name via id, and insert their total seats.
+    for party_id, seats in overall_seats.items():
+        # Grabs party name.
+        cur.execute("SELECT name FROM parties WHERE id = " + str(party_id))
+        party_name = cur.fetchone()
+
+        # Grabs party total votes.
+        cur.execute("SELECT SUM(votes) FROM candidates WHERE party_id = " + str(party_id))
+        party_votes = cur.fetchone()
+
+        # Inserting the values into the results table.
+        cur.execute("INSERT INTO results VALUES ('DHont (by Region)', ?, ?, ?, ?, ?)", (party_name[0], seats, round(((seats/650)*100), 2), round((party_votes[0]/votes[0])*100, 2), round(((party_votes[0]/votes[0])*100)-((seats/650)*100), 2)))
+
+
+
+
+
+
+
+
+    # DHont (by Country)
+
+    # Overall seats as a dictionary, to hold the parties and their overall seat count for later insertation.
+    overall_seats = {}
+    # Current seats dictionary to hold each parties current seats.
+    current_seats = {}
+    # Vote quotients dictionary to hold each parties vote quotient.
+    vote_quotients = {}
+
+    # Gets all parties id's from parties table.
+    cur.execute("SELECT id FROM parties")
+    parties = cur.fetchall()
+
+    # Adding each party to the dictionary.
+    for row in parties:
+        overall_seats[str(row[0])] = 0
+
+    # Loop through each country.
+    for x in range(1, 5):
+
+        # Adding each party to the current votes dictionary.
+        for row in parties:
+            current_seats[str(row[0])] = 0
+
+        country_seats = 0
+        # Loop through each constituency.
+        for y in range(1, 651):
+            # Grabs the constituency and country to check if the constituency comes up in that country.
+            cur.execute("SELECT * FROM candidates WHERE country_id = " + str(x) + " AND constituency_id = " + str(y))
+            constituency_in_country = cur.fetchall()
+
+            # Adds to total "seats" in country if the constituency is in the country.
+            if constituency_in_country:
+                country_seats = country_seats + 1
+
+        # Loops through all seats.
+        for y in range(1,(country_seats+1)):
+            sorted_vote_quotients = {}
+        # Loop through each party.
+            for z in range(1, 72):
+                # Fetches the total votes the current party received in this country.
+                cur.execute("SELECT SUM(votes) FROM candidates WHERE country_id = " + str(x) + " AND party_id = " + str(z))
+                party_votes = cur.fetchone()
+
+                # If no votes, skip iteration.
+                if party_votes[0] is None:
+                    # add party to vote quotients.
+                    continue
+                
+                # Calculates the parties seats for the current country.
+                vote_quotients[str(z)] = party_votes[0] / (current_seats[str(z)] + 1)
+
+            # Sorts the vote quotients in order highest to lowest, converting the dictionary to a list of tuples.
+            sorted_vote_quotients = sorted(vote_quotients.items(), key=lambda x: x[1], reverse=True)
+
+            # Adds to parties current seats.
+            current_seats[str(sorted_vote_quotients[0][0])] = current_seats[str(sorted_vote_quotients[0][0])] + 1
+
+            # Adds to parties overall seats.
+            overall_seats[str(sorted_vote_quotients[0][0])] = overall_seats[str(sorted_vote_quotients[0][0])] + 1
+
+
+            vote_quotients[str(sorted_vote_quotients[0][0])] = vote_quotients[str(sorted_vote_quotients[0][0])] / (current_seats[str(sorted_vote_quotients[0][0])] + 1)
+ 
+    
+    # Loops through all parties in the overall seats dictionary, to grab the parties name via id, and insert their total seats.
+    for party_id, seats in overall_seats.items():
+        # Grabs party name.
+        cur.execute("SELECT name FROM parties WHERE id = " + str(party_id))
+        party_name = cur.fetchone()
+
+        # Grabs party total votes.
+        cur.execute("SELECT SUM(votes) FROM candidates WHERE party_id = " + str(party_id))
+        party_votes = cur.fetchone()
+
+        # Inserting the values into the results table.
+        cur.execute("INSERT INTO results VALUES ('DHont (by Country)', ?, ?, ?, ?, ?)", (party_name[0], seats, round(((seats/650)*100), 2), round((party_votes[0]/votes[0])*100, 2), round(((party_votes[0]/votes[0])*100)-((seats/650)*100), 2)))
+
+
+
     conn.commit()
 
     # Debugging.
