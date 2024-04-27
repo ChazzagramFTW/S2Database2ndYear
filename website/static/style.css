@@ -1,0 +1,52 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html {
+    background-color: beige;
+}
+
+h1 {
+    margin: 20px;
+    text-align: center;
+}
+
+.buttons {
+    display: flex;
+    width: 50vw;
+    margin-left: 25vw;
+    flex-direction: column;
+}
+
+.buttons button {
+    width: 100%;
+    padding: 0.5em;
+    margin: 10px;
+    font-size: 1em;
+}
+
+table {
+    width: 75%;
+    margin-left: 12.5%;
+    margin-bottom: 100px;
+}
+
+table tbody td {
+    background-color: white;
+    border: solid black 2px;
+    padding: 10px;
+}
+
+.system {
+    display: none;
+}
+
+.winner_calc {
+    background-color: white;
+    padding: 20px;
+    width: 50vw;
+    margin-left: 25vw;
+    border: solid black 2px;
+} 

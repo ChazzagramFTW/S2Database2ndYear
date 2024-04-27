@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Electoral System Results Database Implementation</h1>
+    <section class="buttons">
+        <button type="button" onclick="selectSystem(1, 'First Past The Post', FPTP_winner)">First Past The Post</button>
+        <button type="button" onclick="selectSystem(2, 'Proportional Representation without Modification', PR_winner)">Proportional Representation (without Modification)</button>
+        <button type="button" onclick="selectSystem(3, 'Proportional Representation with 5% Threshold', PR5_winner)">Proportional Representation (Threshold 5%)</button>
+        <button type="button" onclick="selectSystem(4, 'Proportional Representation by County', PRCounty_winner)">Proportional Representation (by County)</button>
+        <button type="button" onclick="selectSystem(5, 'Proportional Representation by Region', PRRegion_winner)">Proportional Representation (by Region)</button>
+        <button type="button" onclick="selectSystem(6, 'Proportional Representation by Country', PRCountry_winner)">Proportional Representation (by Country)</button>
+        <button type="button" onclick="selectSystem(7, 'Largest Remainder by County', LRCounty_winner)">Largest Remainder (by County)</button>
+        <button type="button" onclick="selectSystem(8, 'Largest Remainder by Region', LRRegion_winner)">Largest Remainder (by Region)</button>
+        <button type="button" onclick="selectSystem(9, 'Largest Remainder by Country', LRCountry_winner)">Largest Remainder (by Country)</button>
+        <button type="button" onclick="selectSystem(10, 'DHont by County', DHontCounty_winner)">D'Hont (by County)</button>
+        <button type="button" onclick="selectSystem(11, 'DHont by Region', DHontRegion_winner)">D'Hont (by Region)</button>
+        <button type="button" onclick="selectSystem(12, 'DHont by Country', DHontCountry_winner)">D'Hont (by Country)</button>
+        <button type="button" onclick="selectSystem(13, 'Webster by County', WebsterCounty_winner)">Webster (by County)</button>
+        <button type="button" onclick="selectSystem(14, 'Webster by Region', WebsterRegion_winner)">Webster (by Region)</button>
+        <button type="button" onclick="selectSystem(15, 'Webster by Country', WebsterCountry_winner)">Webster (by Country)</button>
+        <button type="button" onclick="selectSystem(16, 'The Creation..', Custom_winner)">The Creation..</button>
+    </section>
+    <h1 id="table_title">-</h1>
+    <section class="winner_calc">
+        <h2>Winner Comparison</h2>
+        <p id="winner">System Winner: </p>
+        <p id="is_winner">Actual Winner?: </p>
+    </section>
+    <section id="table">
+        {{ table | safe }}
+    </section>
+
+    <script>
+        const real_winner = 'Conservative'
+        const FPTP_winner = 'Conservative'
+        const PR_winner = 'Conservative'
+        const PR5_winner = 'Conservative'
+        const PRCounty_winner = 'Conservative'
+        const PRRegion_winner = 'Conservative'
+        const PRCountry_winner = 'Conservative'
+        const LRCounty_winner = 'Conservative'
+        const LRRegion_winner = 'Conservative'
+        const LRCountry_winner = 'Conservative'
+        const DHontCounty_winner = 'Conservative'
+        const DHontRegion_winner = 'Conservative'
+        const DHontCountry_winner = 'Conservative'
+        const WebsterCounty_winner = 'Conservative'
+        const WebsterRegion_winner = 'Conservative'
+        const WebsterCountry_winner = 'Conservative'
+        const Custom_winner = '???'
+
+        for (let i = 1; i <= 17; i++) { // Adjusted loop range
+                let currentSystem = document.querySelectorAll('.system' + i);
+                for (let j = 0; j < currentSystem.length; j++){
+                    currentSystem[j].style.display = 'none'
+                }
+            }
+
+        function selectSystem(index, title, winner) {
+            document.getElementById('table_title').innerHTML = title;
+            for (let i = 1; i <= 17; i++) { // Adjusted loop range
+                let currentSystem = document.querySelectorAll('.system' + i);
+                for (let j = 0; j < currentSystem.length; j++){
+                    currentSystem[j].style.display = 'none'
+                }
+            }
+            let newSystem = document.querySelectorAll('.system' + index);
+            for (let i = 0; i < newSystem.length; i++){
+                newSystem[i].style.display = '';
+            }
+            
+            document.getElementById('winner').innerHTML = "System Winner: " + winner;
+            
+            if(winner == real_winner) {
+                document.getElementById('is_winner').innerHTML = "Actual Winner?: Yes (Shock.)";
+            } else {
+                document.getElementById('is_winner').innerHTML = "Actual Winner?: No?";
+            }
+
+            document.getElementById('table_title').scrollIntoView();
+        }
+    </script>
+</body>
+</html>
